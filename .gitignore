@@ -1,0 +1,9 @@
+.idea
+*.jar
+target/*
+*.iml
+.settings
+*.log
+*.project
+.classpath
+*.MF
