@@ -39,7 +39,7 @@ public class RouteFinder {
 
     private void findConnections(String arrivalAirport, String destinationAirport,
                                  List<RouteDTO> foundRoutes,
-                                 List<RouteDTO> flightRoutes,
+                                 List<RouteDTO> routes,
                                  Set<String> visitedAirports) {
 
         visitedAirports.add(arrivalAirport);
@@ -48,10 +48,10 @@ public class RouteFinder {
             printFlights(foundRoutes);
         }
 
-        for (String neighbourAirport : getNeighbourAirports(arrivalAirport, flightRoutes)) {
+        for (String neighbourAirport : getNeighbourAirports(arrivalAirport, routes)) {
             if (!visitedAirports.contains(neighbourAirport)) {
                 foundRoutes.add(new RouteDTO(arrivalAirport, neighbourAirport));
-                findConnections(neighbourAirport, destinationAirport, foundRoutes, flightRoutes, visitedAirports);
+                findConnections(neighbourAirport, destinationAirport, foundRoutes, routes, visitedAirports);
                 foundRoutes = removeRoute(foundRoutes, arrivalAirport);
             }
         }
@@ -65,15 +65,15 @@ public class RouteFinder {
                 .collect(toSet());
     }
 
-    private List<RouteDTO> removeRoute(List<RouteDTO> flightConnections,
-                                             String arrivalAirport) {
-
-        return flightConnections.stream().filter(flightRouteDTO -> flightRouteDTO.getAirportTo().equals(arrivalAirport))
+    private List<RouteDTO> removeRoute(List<RouteDTO> flightConnections, String arrivalAirport) {
+        return flightConnections
+                .stream()
+                .filter(flightRouteDTO -> flightRouteDTO.getAirportTo().equals(arrivalAirport))
                 .collect(toList());
     }
 
-    private void printFlights(List<RouteDTO> flightConnections) {
-        flightConnections.forEach(flight ->
-                System.out.println("=======" + flight.getAirportFrom() + "======" + flight.getAirportTo()));
+    private void printFlights(List<RouteDTO> routes) {
+        routes.forEach(route ->
+                System.out.println("=======" + route.getAirportFrom() + "======" + route.getAirportTo()));
     }
 }

@@ -104,7 +104,8 @@ public class FlightsSearchServiceImpl implements FlightsSearchService {
                                                                          List<RouteDTO> routes,
                                                                          int flightsIntervalInHours, int stopsCount) {
 
-        //TODO: Filtering by stops count haven't yet implemented. RouteFinder.findRoutes() returns some existed route
+        //TODO: Filtering by stops count haven't yet implemented. RouteFinder.findRoutes() returns all existed routes.
+        // Those routes should be filtered by 'stopsCount`
         return routeFinder.findRoutes(departureAirport, arrivalAirport, routes).stream()
                 .map(connection -> getItinerariesByConnection(departureDateTime, arrivalDateTime, connection,
                         flightsIntervalInHours))
