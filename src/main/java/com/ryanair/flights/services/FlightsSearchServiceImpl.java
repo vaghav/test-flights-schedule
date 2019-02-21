@@ -122,9 +122,11 @@ public class FlightsSearchServiceImpl implements FlightsSearchService {
             return new ArrayList<>();
         }
 
-        return getFlightsScheduleInPeriod(departureAirport, arrivalAirport, departureDateTime, arrivalDateTime).stream()
+        return getFlightsScheduleInPeriod(departureAirport, arrivalAirport, departureDateTime, arrivalDateTime)
+                .stream()
                 .map((FlightSearchServiceUtil::createItinerary)).collect(toList());
     }
+
 
     private List<FlightsScheduleDTO> getFlightsScheduleInPeriod(String departureAirport,
                                                                 String arrivalAirport,

@@ -1,5 +1,6 @@
 package com.ryanair.flights.services;
 
+import com.ryanair.flights.enums.Operator;
 import com.ryanair.flights.internal.downstream.dto.RouteDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,8 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Service for getting all possible flight routes via calling API
@@ -29,8 +33,11 @@ public class RouteService {
 
     public List<RouteDTO> getFlightRoutes() {
         try {
-            RouteDTO[] response = restTemplate.getForObject(URI.create(URL), RouteDTO[].class);
-            return List.of(response);
+
+            RouteDTO[] routes = restTemplate.getForObject(URI.create(URL), RouteDTO[].class);
+            return Arrays.stream(routes).filter(route -> route.getConnectingAirport() == null
+                    && route.getOperator().equals(Operator.RYANAIR.name())).collect(toList());
+
         } catch (RuntimeException ex) {
             log.error("Could't get flight routes ");
             return Collections.emptyList();
