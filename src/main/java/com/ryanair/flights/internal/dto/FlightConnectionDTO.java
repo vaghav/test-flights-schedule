@@ -1,6 +1,6 @@
 package com.ryanair.flights.internal.dto;
 
-import com.ryanair.flights.downstream.dto.RouteDTO;
+import com.ryanair.flights.route.api.dto.RouteDTO;
 import lombok.Getter;
 
 @Getter

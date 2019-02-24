@@ -1,12 +1,10 @@
 package com.ryanair.flights.internal.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@EqualsAndHashCode
 @AllArgsConstructor
 @Getter
 public class FlightInfoDTO {

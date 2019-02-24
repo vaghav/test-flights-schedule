@@ -1,6 +1,6 @@
-import com.ryanair.flights.downstream.dto.RouteDTO;
-import com.ryanair.flights.dto.ItineraryDTO;
-import com.ryanair.flights.dto.LegDTO;
+import com.ryanair.flights.route.api.dto.RouteDTO;
+import com.ryanair.flights.services.dto.ItineraryDTO;
+import com.ryanair.flights.services.dto.LegDTO;
 import com.ryanair.flights.internal.dto.FlightInfoDTO;
 import junitparams.Parameters;
 import org.junit.Test;

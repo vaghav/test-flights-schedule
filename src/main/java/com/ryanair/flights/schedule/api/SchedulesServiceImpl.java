@@ -1,7 +1,7 @@
-package com.ryanair.flights.services;
+package com.ryanair.flights.schedule.api;
 
-import com.ryanair.flights.downstream.dto.ScheduleDTO;
 import com.ryanair.flights.internal.dto.FlightInfoDTO;
+import com.ryanair.flights.schedule.api.dto.ScheduleDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -1,8 +1,8 @@
-import com.ryanair.flights.dto.ItineraryDTO;
-import com.ryanair.flights.dto.LegDTO;
+import com.ryanair.flights.services.dto.ItineraryDTO;
+import com.ryanair.flights.services.dto.LegDTO;
 import com.ryanair.flights.services.FlightsSearchServiceImpl;
-import com.ryanair.flights.services.RouteServiceImpl;
-import com.ryanair.flights.services.SchedulesServiceImpl;
+import com.ryanair.flights.route.api.RouteServiceImpl;
+import com.ryanair.flights.schedule.api.SchedulesServiceImpl;
 import junitparams.JUnitParamsRunner;
 import org.junit.Before;
 import org.junit.Rule;

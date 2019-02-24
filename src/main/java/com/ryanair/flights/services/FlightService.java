@@ -1,6 +1,6 @@
 package com.ryanair.flights.services;
 
-import com.ryanair.flights.dto.ItineraryDTO;
+import com.ryanair.flights.services.dto.ItineraryDTO;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;

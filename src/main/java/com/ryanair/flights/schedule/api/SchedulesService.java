@@ -1,4 +1,4 @@
-package com.ryanair.flights.services;
+package com.ryanair.flights.schedule.api;
 
 import com.ryanair.flights.internal.dto.FlightInfoDTO;
 

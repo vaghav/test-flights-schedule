@@ -1,8 +1,9 @@
-package com.ryanair.flights.services;
+package com.ryanair.flights.route.api;
 
-import com.ryanair.flights.enums.Operator;
-import com.ryanair.flights.downstream.dto.RouteDTO;
 import com.ryanair.flights.internal.dto.FlightConnectionDTO;
+import com.ryanair.flights.internal.dto.FlightPathDTO;
+import com.ryanair.flights.route.api.dto.RouteDTO;
+import com.ryanair.flights.enums.Operator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.*;
-import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -42,11 +42,10 @@ public class RouteServiceImpl implements RouteService {
         }
     }
 
-
     @Override
     public List<FlightConnectionDTO> getOneStopConnections(String departAirport,
-                                                                  String arrivalAirport,
-                                                                  List<RouteDTO> routes) {
+                                                           String arrivalAirport,
+                                                           List<RouteDTO> routes) {
         Set<String> firstFlightArrivalAirportSet = routes
                 .stream()
                 .filter(route -> route.getAirportFrom().equals(departAirport))
@@ -62,43 +61,54 @@ public class RouteServiceImpl implements RouteService {
                 .collect(toList());
     }
 
+    //TODO: Haven't yet finished. Filtering by stops count should be implemented.
+    // Current implementation needs testing.
     @Override
-    public List<FlightConnectionDTO> findRoutes(String arrivalAirport,
-                                                String destinationAirport,
-                                                List<RouteDTO> flightRoutes) {
+    public List<FlightPathDTO> findPaths(String arrivalAirport,
+                                         String destinationAirport,
+                                         List<RouteDTO> flightRoutes,
+                                         int stopCount) {
 
         System.out.println("Arrival airport: " + arrivalAirport + " Destin airport: " + destinationAirport);
 
         List<RouteDTO> foundRoutes = new ArrayList<>();
-        List<FlightConnectionDTO> flightConnections = new ArrayList<>();
+        List<FlightPathDTO> flightPaths = new ArrayList<>();
 
         Set<String> visitedAirport = new HashSet<>();
 
-        findConnections(arrivalAirport, destinationAirport, foundRoutes, flightRoutes, visitedAirport);
-        IntStream.range(0, foundRoutes.size() - 1)
-                .forEach(i -> flightConnections.add(new FlightConnectionDTO(foundRoutes.get(i), foundRoutes.get(i + 1))));
-        return flightConnections;
+        findConnections(arrivalAirport, destinationAirport, foundRoutes, flightRoutes, visitedAirport, flightPaths);
+
+        return flightPaths;
     }
 
     private void findConnections(String arrivalAirport, String destinationAirport,
                                  List<RouteDTO> foundRoutes,
                                  List<RouteDTO> routes,
-                                 Set<String> visitedAirports) {
+                                 Set<String> visitedAirports,
+                                 List<FlightPathDTO> flightPaths) {
 
         visitedAirports.add(arrivalAirport);
 
         if (arrivalAirport.equals(destinationAirport)) {
             printFlights(foundRoutes);
+            List<FlightConnectionDTO> flightConnections = new ArrayList<>();
+            for (int i = 0; i < foundRoutes.size() - 1; i++) {
+                flightConnections.add(new FlightConnectionDTO(foundRoutes.get(i), foundRoutes.get(i + 1)));
+            }
+            flightPaths.add(new FlightPathDTO(flightConnections));
+
+            visitedAirports.remove(arrivalAirport);
+            return;
         }
 
         for (String neighbourAirport : getNeighbourAirports(arrivalAirport, routes)) {
             if (!visitedAirports.contains(neighbourAirport)) {
                 foundRoutes.add(new RouteDTO(arrivalAirport, neighbourAirport));
-                findConnections(neighbourAirport, destinationAirport, foundRoutes, routes, visitedAirports);
-                foundRoutes = removeRoute(foundRoutes, arrivalAirport);
+                findConnections(neighbourAirport, destinationAirport, foundRoutes, routes, visitedAirports, flightPaths);
+                foundRoutes = removeRoute(foundRoutes, neighbourAirport);
             }
         }
-        visitedAirports.add(arrivalAirport);
+        visitedAirports.remove(arrivalAirport);
     }
 
     private Set<String> getNeighbourAirports(String airport, List<RouteDTO> routes) {
@@ -108,10 +118,10 @@ public class RouteServiceImpl implements RouteService {
                 .collect(toSet());
     }
 
-    private List<RouteDTO> removeRoute(List<RouteDTO> flightConnections, String arrivalAirport) {
-        return flightConnections
+    private List<RouteDTO> removeRoute(List<RouteDTO> routes, String neighbourAirport) {
+        return routes
                 .stream()
-                .filter(flightRouteDTO -> flightRouteDTO.getAirportTo().equals(arrivalAirport))
+                .filter(route -> !route.getAirportTo().equals(neighbourAirport))
                 .collect(toList());
     }
 

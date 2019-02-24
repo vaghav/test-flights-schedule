@@ -1,4 +1,4 @@
-package com.ryanair.flights.dto;
+package com.ryanair.flights.services.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

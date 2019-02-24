@@ -1,9 +1,11 @@
 package com.ryanair.flights.services;
 
-import com.ryanair.flights.downstream.dto.RouteDTO;
-import com.ryanair.flights.dto.ItineraryDTO;
+import com.ryanair.flights.services.dto.ItineraryDTO;
+import com.ryanair.flights.route.api.dto.RouteDTO;
 import com.ryanair.flights.internal.dto.FlightConnectionDTO;
 import com.ryanair.flights.internal.dto.FlightInfoDTO;
+import com.ryanair.flights.route.api.RouteService;
+import com.ryanair.flights.schedule.api.SchedulesService;
 import com.ryanair.flights.util.FlightSearchServiceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +28,7 @@ public class FlightsSearchServiceImpl extends FlightService {
     private final SchedulesService schedulesService;
 
     @Autowired
-    public FlightsSearchServiceImpl(RouteServiceImpl routeService, SchedulesServiceImpl schedulesService) {
+    public FlightsSearchServiceImpl(RouteService routeService, SchedulesService schedulesService) {
         this.routeService = routeService;
         this.schedulesService = schedulesService;
     }
@@ -71,7 +73,6 @@ public class FlightsSearchServiceImpl extends FlightService {
         return itineraries;
     }
 
-
     private Collection<? extends ItineraryDTO> getItinerariesByStopCount(String departureAirport,
                                                                          String arrivalAirport,
                                                                          LocalDateTime departureDateTime,
@@ -80,13 +81,7 @@ public class FlightsSearchServiceImpl extends FlightService {
                                                                          int flightsIntervalInHours,
                                                                          int stopsCount) {
 
-        //TODO: Filtering by stops count haven't yet implemented. RouteFinder.findRoutes() returns one of existed connections
-        // from departure to arrival airport. Those routes should be filtered by 'stopsCount`.
-        return routeService.findRoutes(departureAirport, arrivalAirport, routes)
-                .stream()
-                .map(connection -> getItinerariesByConnection(departureDateTime, arrivalDateTime, connection,
-                        flightsIntervalInHours))
-                .flatMap(Collection::stream).collect(toList());
+        throw new UnsupportedOperationException("Functionality haven't yet implemented");
     }
 
     private void validateFlightsTimes(LocalDateTime departureDateTime, LocalDateTime arrivalDateTime) {

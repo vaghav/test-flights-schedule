@@ -1,6 +1,6 @@
 package com.ryanair.flights.services;
 
-import com.ryanair.flights.dto.ItineraryDTO;
+import com.ryanair.flights.services.dto.ItineraryDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;

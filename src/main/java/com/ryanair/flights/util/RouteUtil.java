@@ -1,6 +1,6 @@
 package com.ryanair.flights.util;
 
-import com.ryanair.flights.downstream.dto.RouteDTO;
+import com.ryanair.flights.route.api.dto.RouteDTO;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 

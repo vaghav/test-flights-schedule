@@ -1,8 +1,7 @@
 package com.ryanair.flights.web;
 
-import com.ryanair.flights.dto.ItineraryDTO;
+import com.ryanair.flights.services.dto.ItineraryDTO;
 import com.ryanair.flights.services.FlightsSearchService;
-import com.ryanair.flights.services.FlightsSearchServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +19,7 @@ public class FlightsController {
     private final FlightsSearchService flightsSearcherService;
 
     @Autowired
-    public FlightsController(FlightsSearchServiceImpl flightsSearcherService) {
+    public FlightsController(FlightsSearchService flightsSearcherService) {
         this.flightsSearcherService = flightsSearcherService;
     }
 

@@ -1,6 +1,7 @@
-package com.ryanair.flights.services;
+package com.ryanair.flights.route.api;
 
-import com.ryanair.flights.downstream.dto.RouteDTO;
+import com.ryanair.flights.internal.dto.FlightPathDTO;
+import com.ryanair.flights.route.api.dto.RouteDTO;
 import com.ryanair.flights.internal.dto.FlightConnectionDTO;
 
 import java.util.List;
@@ -27,14 +28,17 @@ public interface RouteService {
     List<FlightConnectionDTO> getOneStopConnections(String departAirport,
                                                     String arrivalAirport,
                                                     List<RouteDTO> routes);
+
     /**
-     * Find possible connection from arrival to destination airport
+     * Find all connections from arrival to destination airport with given stops count
      * @param arrivalAirport
      * @param destinationAirport
      * @param flightRoutes
+     * @param stopCount
      * @return
      */
-    List<FlightConnectionDTO> findRoutes(String arrivalAirport,
-                                         String destinationAirport,
-                                         List<RouteDTO> flightRoutes);
+    List<FlightPathDTO> findPaths(String arrivalAirport,
+                                  String destinationAirport,
+                                  List<RouteDTO> flightRoutes,
+                                  int stopCount);
 }

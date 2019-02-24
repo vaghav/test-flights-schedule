@@ -1,4 +1,4 @@
-package com.ryanair.flights.downstream.dto;
+package com.ryanair.flights.schedule.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

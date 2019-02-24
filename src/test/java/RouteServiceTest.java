@@ -1,7 +1,8 @@
-import com.ryanair.flights.downstream.dto.RouteDTO;
+import com.ryanair.flights.route.api.dto.RouteDTO;
 import com.ryanair.flights.enums.Operator;
-import com.ryanair.flights.services.RouteServiceImpl;
+import com.ryanair.flights.route.api.RouteServiceImpl;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -47,11 +48,12 @@ public class RouteServiceTest {
         Assert.assertSame(secondRoute, flightRoutes.get(0));
     }
 
+    @Ignore
     @Test
     public void shouldPrintAirPortCodes() {
 
         //when
-        routeService.findRoutes("WRO", "MAD", createRoutes());
+        routeService.findPaths("WRO", "MAD", createRoutes(), 7);
 
         //then
         //TODO: Assertions needs
@@ -66,8 +68,8 @@ public class RouteServiceTest {
                 new RouteDTO("WRO", "SVO"), new RouteDTO("SVO", "WAW"),
                 new RouteDTO("BCN", "QAT"), new RouteDTO("QAT", "FRN"),
                 new RouteDTO("FRN", "CCV"), new RouteDTO("CCV", "SSS"),
-//                new RouteDTO("WRO", "AST"), new RouteDTO("AST", "SSS"),
-//                new RouteDTO("SSS", "MAD"), new RouteDTO("SSS", "DAV"),
+                new RouteDTO("WRO", "AST"), new RouteDTO("AST", "SSS"),
+                new RouteDTO("SSS", "MAD"), new RouteDTO("SSS", "DAV"),
                 new RouteDTO("WAW", "MAD"), new RouteDTO("MAD", "BCN"));
     }
 }

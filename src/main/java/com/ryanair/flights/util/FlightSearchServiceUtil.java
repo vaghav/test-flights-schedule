@@ -1,9 +1,10 @@
 package com.ryanair.flights.util;
 
-import com.ryanair.flights.dto.*;
-import com.ryanair.flights.downstream.dto.FlightDTO;
+import com.ryanair.flights.schedule.api.dto.FlightDTO;
 import com.ryanair.flights.internal.dto.FlightInfoDTO;
-import com.ryanair.flights.downstream.dto.ScheduleDTO;
+import com.ryanair.flights.schedule.api.dto.ScheduleDTO;
+import com.ryanair.flights.services.dto.ItineraryDTO;
+import com.ryanair.flights.services.dto.LegDTO;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 

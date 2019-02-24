@@ -1,9 +1,9 @@
-import com.ryanair.flights.dto.ItineraryDTO;
-import com.ryanair.flights.downstream.dto.DayDTO;
-import com.ryanair.flights.downstream.dto.FlightDTO;
-import com.ryanair.flights.downstream.dto.ScheduleDTO;
+import com.ryanair.flights.services.dto.ItineraryDTO;
 import com.ryanair.flights.internal.dto.FlightInfoDTO;
-import com.ryanair.flights.services.SchedulesServiceImpl;
+import com.ryanair.flights.schedule.api.dto.DayDTO;
+import com.ryanair.flights.schedule.api.dto.FlightDTO;
+import com.ryanair.flights.schedule.api.dto.ScheduleDTO;
+import com.ryanair.flights.schedule.api.SchedulesServiceImpl;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
