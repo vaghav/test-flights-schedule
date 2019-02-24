@@ -1,4 +1,4 @@
-package com.ryanair.flights.internal.downstream.dto;
+package com.ryanair.flights.downstream.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

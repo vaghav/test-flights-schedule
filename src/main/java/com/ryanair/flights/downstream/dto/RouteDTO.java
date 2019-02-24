@@ -1,4 +1,4 @@
-package com.ryanair.flights.internal.downstream.dto;
+package com.ryanair.flights.downstream.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

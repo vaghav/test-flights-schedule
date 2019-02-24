@@ -1,6 +1,7 @@
 package com.ryanair.flights.web;
 
 import com.ryanair.flights.dto.ItineraryDTO;
+import com.ryanair.flights.services.FlightsSearchService;
 import com.ryanair.flights.services.FlightsSearchServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,7 +17,7 @@ import java.util.List;
 @RestController
 public class FlightsController {
 
-    private final FlightsSearchServiceImpl flightsSearcherService;
+    private final FlightsSearchService flightsSearcherService;
 
     @Autowired
     public FlightsController(FlightsSearchServiceImpl flightsSearcherService) {
@@ -42,6 +43,6 @@ public class FlightsController {
 		LocalDateTime arrivalTime = LocalDateTime.parse(arrivalDateTime);
         List<ItineraryDTO> flights = flightsSearcherService.searchInterConnected(departure, arrival,
 				departureTime, arrivalTime);
-        return new ResponseEntity(flights, HttpStatus.OK);
+        return new ResponseEntity<>(flights, HttpStatus.OK);
 	}
 }

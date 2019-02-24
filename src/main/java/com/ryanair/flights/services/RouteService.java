@@ -1,46 +1,40 @@
 package com.ryanair.flights.services;
 
-import com.ryanair.flights.enums.Operator;
-import com.ryanair.flights.internal.downstream.dto.RouteDTO;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import com.ryanair.flights.downstream.dto.RouteDTO;
+import com.ryanair.flights.internal.dto.FlightConnectionDTO;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
-
 /**
- * Service for getting all possible flight routes via calling API
+ * Service for getting all possible direct flight routes via calling Route API
  * https://services-api.ryanair.com/locate/3/routes/
  */
-@Service
-@Slf4j
-public class RouteService {
+public interface RouteService {
 
-    private static final String URL = "https://services-api.ryanair.com/locate/3/routes";
+    /**
+     * Get all possible direct routes
+     * @return
+     */
+    List<RouteDTO> getFlightRoutes();
 
-    private final RestTemplate restTemplate;
-
-    @Autowired
-    public RouteService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
-
-    public List<RouteDTO> getFlightRoutes() {
-        try {
-
-            RouteDTO[] routes = restTemplate.getForObject(URI.create(URL), RouteDTO[].class);
-            return Arrays.stream(routes).filter(route -> route.getConnectingAirport() == null
-                    && route.getOperator().equals(Operator.RYANAIR.name())).collect(toList());
-
-        } catch (RuntimeException ex) {
-            log.error("Could't get flight routes ");
-            return Collections.emptyList();
-        }
-    }
+    /**
+     *  Filter and collect all connections which are having one transit stop
+     * @param departAirport
+     * @param arrivalAirport
+     * @param routes
+     * @return
+     */
+    List<FlightConnectionDTO> getOneStopConnections(String departAirport,
+                                                    String arrivalAirport,
+                                                    List<RouteDTO> routes);
+    /**
+     * Find possible connection from arrival to destination airport
+     * @param arrivalAirport
+     * @param destinationAirport
+     * @param flightRoutes
+     * @return
+     */
+    List<FlightConnectionDTO> findRoutes(String arrivalAirport,
+                                         String destinationAirport,
+                                         List<RouteDTO> flightRoutes);
 }

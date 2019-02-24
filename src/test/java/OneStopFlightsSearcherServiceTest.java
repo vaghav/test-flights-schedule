@@ -1,137 +1,122 @@
+import com.ryanair.flights.downstream.dto.RouteDTO;
 import com.ryanair.flights.dto.ItineraryDTO;
 import com.ryanair.flights.dto.LegDTO;
-import com.ryanair.flights.internal.downstream.dto.DailyFlightsScheduleDTO;
-import com.ryanair.flights.internal.downstream.dto.FlightDTO;
-import com.ryanair.flights.internal.downstream.dto.RouteDTO;
-import com.ryanair.flights.internal.downstream.dto.ScheduleDTO;
+import com.ryanair.flights.internal.dto.FlightConnectionDTO;
+import com.ryanair.flights.internal.dto.FlightInfoDTO;
 import junitparams.Parameters;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.mockito.Matchers.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 public class OneStopFlightsSearcherServiceTest extends CommonFlightSearcherServiceTest {
 
-    @Before
-    public void setUp() throws Exception {
-        ReflectionTestUtils.setField(searcherService, "flightsIntervalInHours", 2, Integer.class);
-    }
-
     @Test
     @Parameters(method = "parametersForOneStopFlights")
-    public void shouldReturnInterConnectedFlights(Optional<ScheduleDTO> flightsScheduleFirst,
-                                                  Optional<ScheduleDTO> flightsScheduleSecond,
+    public void shouldReturnInterConnectedFlights(List<FlightInfoDTO> flightsInfoFirst,
+                                                  List<FlightInfoDTO> flightsInfoSecond,
                                                   List<RouteDTO> routes,
+                                                  List<FlightConnectionDTO> flightConnections,
                                                   List<ItineraryDTO> expectedFlights) {
         //given
-        prepareStubs(flightsScheduleFirst, flightsScheduleSecond, routes);
-        when(schedulesServiceMock.getFlightsSchedule(eq("WRO"), eq("GRO"), anyShort(), anyByte()))
-                .thenReturn(flightsScheduleFirst);
-        when(schedulesServiceMock.getFlightsSchedule(eq("GRO"), eq("WAW"), anyShort(), anyByte()))
-                .thenReturn(flightsScheduleSecond);
+        prepareStubs(flightsInfoFirst, flightsInfoSecond, routes, flightConnections);
+        when(schedulesServiceMock.getFlightsInPeriod(eq("WRO"), eq("GRO"), any(LocalDateTime.class),
+                any(LocalDateTime.class))).thenReturn(List.of(new FlightInfoDTO("WRO","GRO",
+                LocalDateTime.parse("2019-03-02T07:15"), LocalDateTime.parse("2019-03-02T11:35"))));
+        when(schedulesServiceMock.getFlightsInPeriod(eq("GRO"), eq("WAW"), any(LocalDateTime.class),
+                any(LocalDateTime.class))).thenReturn(List.of(new FlightInfoDTO( "GRO", "WAW",
+                LocalDateTime.parse("2019-03-02T15:34"), LocalDateTime.parse("2019-03-02T21:09"))));
 
         //when
         List<ItineraryDTO> actualFlights = searcherService.searchInterConnected("WRO", "WAW",
                 departureDateTime, arrivalDateTime, 2);
 
         //then
-        Assert.assertTrue(EqualsBuilder.reflectionEquals(expectedFlights, actualFlights));
-    }
-
-    @Test
-    public void shouldReturnInterEmptyFlightsArrivalAndDepartureTimeNotInRange() {
-        //given
-        prepareStubs(createFirstFlightsSchedule(), createSecondFlightSchedule(), createSingleConnection());
-
-        //when
-        List<ItineraryDTO> actualFlights = searcherService.searchInterConnected("WRO", "WAW",
-                departureDateTime.plusMinutes(16), arrivalDateTime.minusHours(1), 2);
-
-        //then
-        Assert.assertTrue(EqualsBuilder.reflectionEquals(new ArrayList<>(), actualFlights));
-    }
-
-    @Test
-    public void shouldReturnInterEmptyFlightsArrivalTimeNotInRange() {
-        //given
-        prepareStubs(createFirstFlightsSchedule(), createSecondFlightSchedule(), createSingleConnection());
-
-        //when
-        List<ItineraryDTO> actualFlights = searcherService.searchInterConnected("WRO", "WAW",
-                departureDateTime, arrivalDateTime.minusHours(2), 2);
-
-        //then
-        Assert.assertTrue(EqualsBuilder.reflectionEquals(new ArrayList<>(), actualFlights));
-    }
-
-    @Test
-    public void shouldReturnInterEmptyFlightsDepartureTimeNotInRange() {
-        //given
-        prepareStubs(createFirstFlightsSchedule(), createSecondFlightSchedule(), createSingleConnection());
-
-        //when
-        List<ItineraryDTO> actualFlights = searcherService.searchInterConnected("WRO", "WAW",
-                departureDateTime.plusMinutes(16), arrivalDateTime);
-
-        //then
-        Assert.assertTrue(EqualsBuilder.reflectionEquals(new ArrayList<>(), actualFlights));
+        assertThat(actualFlights).isEqualToComparingFieldByFieldRecursively(expectedFlights);
     }
 
     @Test
     public void shouldReturnInterEmptyFlightsInvalidPeriod() {
         //given
-        prepareStubs(createFirstFlightsSchedule(), createSecondFlightSchedule(), createSingleConnection());
+        prepareStubs(createFirstFlightsInfo(), createSecondFlightInfo(), createFirstRoutes(), createFlightConnection());
 
         //when
         List<ItineraryDTO> actualFlights = searcherService.searchInterConnected("WRO", "WAW",
                 departureDateTime, arrivalDateTime, 4);
 
         //then
-        Assert.assertTrue(EqualsBuilder.reflectionEquals(new ArrayList<>(), actualFlights));
+        assertThat(actualFlights).isEqualToComparingFieldByFieldRecursively(new ArrayList<>());
     }
 
     @Test
     public void shouldReturnInterEmptyFlightsNoConnection() {
         //given
-        prepareStubs(createFirstFlightsSchedule(), createSecondFlightSchedule(), createSingleConnection());
+        prepareStubs(createFirstFlightsInfo(), createSecondFlightInfo(), createFirstRoutes(), createFlightConnection());
+
 
         //when
         List<ItineraryDTO> actualFlights = searcherService.searchInterConnected("WRO", "EVN",
                 departureDateTime, arrivalDateTime, 2);
 
         //then
-        Assert.assertTrue(EqualsBuilder.reflectionEquals(new ArrayList<>(), actualFlights));
+        assertThat(actualFlights).isEqualToComparingFieldByFieldRecursively(new ArrayList<>());
     }
 
-    private void prepareStubs(Optional<ScheduleDTO> flightsScheduleFirst, Optional<ScheduleDTO> flightsScheduleSecond,
-                                List<RouteDTO> routes) {
+    private void prepareStubs(List<FlightInfoDTO> flightsInfoFirst, List<FlightInfoDTO> flightsInfoSecond,
+                              List<RouteDTO> routes, List<FlightConnectionDTO> flightConnections) {
+
         when(routeServiceMock.getFlightRoutes()).thenReturn(routes);
-        when(schedulesServiceMock.getFlightsSchedule(eq("WRO"), eq("SVO"), anyShort(), anyByte()))
-                .thenReturn(flightsScheduleFirst);
-        when(schedulesServiceMock.getFlightsSchedule(eq("SVO"), eq("WAW"), anyShort(), anyByte()))
-                .thenReturn(flightsScheduleSecond);
+        when(routeServiceMock.getOneStopConnections("WRO", "WAW", routes))
+                .thenReturn(flightConnections);
+        when(schedulesServiceMock.getFlightsInPeriod(eq("WRO"), eq("SVO"), any(LocalDateTime.class),
+                any(LocalDateTime.class)))
+                .thenReturn(flightsInfoFirst);
+        when(schedulesServiceMock.getFlightsInPeriod(eq("SVO"), eq("WAW"), any(LocalDateTime.class),
+                any(LocalDateTime.class)))
+                .thenReturn(flightsInfoSecond);
     }
 
     private Object[] parametersForOneStopFlights() {
-        return new Object[][]{{createFirstFlightsSchedule(), createSecondFlightSchedule(), createSingleConnection(),
-                createSingleExpectedFlight()}, {createFirstFlightsSchedule(), createSecondFlightSchedule(),
-                createSeveralConnections(), createTwoExpectedFlights()}};
+        return new Object[][]
+                {
+                        {
+                                createFirstFlightsInfo(), createSecondFlightInfo(),
+                                createFirstRoutes(),
+                                createFlightConnection(),
+                                createSingleExpectedFlight()
+                        },
+                        {
+                                createFirstFlightsInfo(), createSecondFlightInfo(),
+                                createSecondRoutes(), List.of(
+                                new FlightConnectionDTO(
+                                        new RouteDTO("WRO", "GRO"),
+                                        new RouteDTO("GRO", "WAW")),
+                                new FlightConnectionDTO(
+                                        new RouteDTO("WRO", "SVO"),
+                                        new RouteDTO("SVO", "WAW"))),
+                                createTwoExpectedFlights()
+                        }
+                };
     }
 
-    private List<RouteDTO> createSingleConnection() {
+    private List<FlightConnectionDTO> createFlightConnection() {
+        return List.of(new FlightConnectionDTO(
+                new RouteDTO("WRO", "SVO"),
+                new RouteDTO("SVO", "WAW")));
+    }
+
+    private List<RouteDTO> createFirstRoutes() {
         return List.of(new RouteDTO("WRO", "SVO"),
                 new RouteDTO("SVO", "WAW"));
     }
 
-    private List<RouteDTO> createSeveralConnections() {
+    private List<RouteDTO> createSecondRoutes() {
         return List.of(new RouteDTO("WRO", "GRO"),
                 new RouteDTO("WAW", "WRO"),
                 new RouteDTO("GRO", "WAW"), new RouteDTO("WRO", "BCN"),
@@ -141,34 +126,33 @@ public class OneStopFlightsSearcherServiceTest extends CommonFlightSearcherServi
                 new RouteDTO("MAD", "WAW"), new RouteDTO("MAD", "BCN"));
     }
 
-    private Optional<ScheduleDTO> createSecondFlightSchedule() {
-        return Optional.of(new ScheduleDTO(3, List.of(new DailyFlightsScheduleDTO(2,
-                List.of(new FlightDTO( "FL45", LocalTime.parse("15:34"), LocalTime.parse("21:09")))))));
+    private List<FlightInfoDTO> createSecondFlightInfo() {
+        return List.of(new FlightInfoDTO( "SVO", "WAW",
+                LocalDateTime.parse("2019-03-02T15:34"), LocalDateTime.parse("2019-03-02T21:09")));
     }
 
-    private Optional<ScheduleDTO> createFirstFlightsSchedule() {
-        return Optional.of(new ScheduleDTO(3, List.of(new DailyFlightsScheduleDTO(2,
-                List.of(new FlightDTO("FL45", LocalTime.parse("07:15"), LocalTime.parse("11:35")))))));
+    private List<FlightInfoDTO> createFirstFlightsInfo() {
+        return List.of(new FlightInfoDTO("WRO","SVO",
+                LocalDateTime.parse("2019-03-02T07:15"), LocalDateTime.parse("2019-03-02T11:35")));
     }
 
     private List<ItineraryDTO> createTwoExpectedFlights() {
-        return new ArrayList<>(Arrays.asList(createItinerary(
+        return new ArrayList<>(List.of(createItinerary(
                 new LegDTO("WRO", "GRO",
-                        LocalDateTime.parse("2016-03-02T07:15"), LocalDateTime.parse("2016-03-02T11:35")),
-                new LegDTO("GRO", "WAW", LocalDateTime.parse("2016-03-02T15:34"),
-                        LocalDateTime.parse("2016-03-02T21:09"))),
+                        LocalDateTime.parse("2019-03-02T07:15"), LocalDateTime.parse("2019-03-02T11:35")),
+                new LegDTO("GRO", "WAW", LocalDateTime.parse("2019-03-02T15:34"),
+                        LocalDateTime.parse("2019-03-02T21:09"))),
                 createItinerary(new LegDTO("WRO", "SVO",
-                                LocalDateTime.parse("2016-03-02T07:15"), LocalDateTime.parse("2016-03-02T11:35")),
+                                LocalDateTime.parse("2019-03-02T07:15"), LocalDateTime.parse("2019-03-02T11:35")),
                         new LegDTO("SVO", "WAW",
-                                LocalDateTime.parse("2016-03-02T15:34"), LocalDateTime.parse("2016-03-02T21:09")))));
+                                LocalDateTime.parse("2019-03-02T15:34"), LocalDateTime.parse("2019-03-02T21:09")))));
     }
 
     private List<ItineraryDTO> createSingleExpectedFlight() {
-        return new ArrayList<>(Arrays.asList(createItinerary(
+        return new ArrayList<>(List.of(createItinerary(
                 new LegDTO("WRO", "SVO",
-                        LocalDateTime.parse("2016-03-02T07:15"), LocalDateTime.parse("2016-03-02T11:35")),
+                        LocalDateTime.parse("2019-03-02T07:15"), LocalDateTime.parse("2019-03-02T11:35")),
                 new LegDTO("SVO", "WAW",
-                        LocalDateTime.parse("2016-03-02T15:34"), LocalDateTime.parse("2016-03-02T21:09")))));
+                        LocalDateTime.parse("2019-03-02T15:34"), LocalDateTime.parse("2019-03-02T21:09")))));
     }
-
 }

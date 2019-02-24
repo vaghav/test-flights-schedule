@@ -1,43 +1,26 @@
 package com.ryanair.flights.services;
 
-import com.ryanair.flights.internal.downstream.dto.ScheduleDTO;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import com.ryanair.flights.internal.dto.FlightInfoDTO;
 
-import java.net.URI;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.List;
 
-/**
- * Service for getting flight schedulers by year ans month via calling API
- * https://services-api.ryanair.com/timtbl/3/schedules/{departure}/{arrival}/years/{year}/months/{month}
- * Example:
- * https://services-api.ryanair.com/timtbl/3/schedules/DUB/WRO/years/2016/months/6:
- */
-@Service
-@Slf4j
-public class SchedulesService {
+public interface SchedulesService {
 
+    /**
+     * Get collection of flights for given departure and arrival airports within departure and arrival time.
+     *
+     * Using Schedules API for getting flight schedules by year and month.
+     * https://services-api.ryanair.com/timtbl/3/schedules/{departure}/{arrival}/years/{year}/months/{month}
+     * Example:
+     * https://services-api.ryanair.com/timtbl/3/schedules/DUB/WRO/years/2019/months/6:
 
-    private final RestTemplate restTemplate;
-
-    @Autowired
-    public SchedulesService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
-
-    public Optional<ScheduleDTO> getFlightsSchedule(String departureAirport,
-                                                    String arrivalAirport,
-                                                    int year, int month) {
-
-        String URL = String.format("https://services-api.ryanair.com/timtbl/3/schedules/%s/%s/years/%d/months/%d",
-                departureAirport, arrivalAirport, year, month);
-        try {
-            return Optional.ofNullable(restTemplate.getForObject(URI.create(URL), ScheduleDTO.class));
-        } catch (RuntimeException ex) {
-           log.error("Could't get flight schedule ");
-           return Optional.empty();
-        }
-    }
+     * @param departureAirport
+     * @param arrivalAirport
+     * @param departureDateTime
+     * @param arrivalDateTime
+     * @return
+     */
+    List<FlightInfoDTO> getFlightsInPeriod(String departureAirport, String arrivalAirport,
+                                           LocalDateTime departureDateTime, LocalDateTime arrivalDateTime);
 }

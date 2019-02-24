@@ -1,25 +1,68 @@
 package com.ryanair.flights.services;
 
-import com.ryanair.flights.internal.downstream.dto.RouteDTO;
+import com.ryanair.flights.enums.Operator;
+import com.ryanair.flights.downstream.dto.RouteDTO;
 import com.ryanair.flights.internal.dto.FlightConnectionDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.net.URI;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-/**
- * Finding all possible routes from arrival to destination airport using
- * recursive breadth-first search algorithm
- */
 @Service
-public class RouteFinder {
+@Slf4j
+public class RouteServiceImpl implements RouteService {
 
+    private static final String URL = "https://services-api.ryanair.com/locate/3/routes";
+
+    private final RestTemplate restTemplate;
+
+    @Autowired
+    public RouteServiceImpl(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    @Override
+    public List<RouteDTO> getFlightRoutes() {
+        try {
+
+            RouteDTO[] routes = restTemplate.getForObject(URI.create(URL), RouteDTO[].class);
+            return Arrays.stream(routes).filter(route -> route.getConnectingAirport() == null
+                    && route.getOperator().equals(Operator.RYANAIR.name())).collect(toList());
+
+        } catch (RuntimeException ex) {
+            log.error("Could't get flight routes ");
+            return Collections.emptyList();
+        }
+    }
+
+
+    @Override
+    public List<FlightConnectionDTO> getOneStopConnections(String departAirport,
+                                                                  String arrivalAirport,
+                                                                  List<RouteDTO> routes) {
+        Set<String> firstFlightArrivalAirportSet = routes
+                .stream()
+                .filter(route -> route.getAirportFrom().equals(departAirport))
+                .map(route -> route.getAirportTo())
+                .collect(toSet());
+
+        return routes
+                .stream()
+                .filter(route -> route.getAirportTo().equals(arrivalAirport))
+                .filter(route -> firstFlightArrivalAirportSet.contains(route.getAirportFrom()))
+                .map(route -> new FlightConnectionDTO(new RouteDTO(departAirport, route.getAirportFrom()),
+                        new RouteDTO(route.getAirportFrom(), arrivalAirport)))
+                .collect(toList());
+    }
+
+    @Override
     public List<FlightConnectionDTO> findRoutes(String arrivalAirport,
                                                 String destinationAirport,
                                                 List<RouteDTO> flightRoutes) {

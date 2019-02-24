@@ -9,9 +9,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode
 @AllArgsConstructor
 @Getter
-public class FlightsScheduleDTO {
-
-    private int year;
+public class FlightInfoDTO {
 
     private String airportFrom;
 

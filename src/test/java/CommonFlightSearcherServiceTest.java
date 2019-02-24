@@ -1,9 +1,8 @@
 import com.ryanair.flights.dto.ItineraryDTO;
 import com.ryanair.flights.dto.LegDTO;
 import com.ryanair.flights.services.FlightsSearchServiceImpl;
-import com.ryanair.flights.services.RouteFinder;
-import com.ryanair.flights.services.RouteService;
-import com.ryanair.flights.services.SchedulesService;
+import com.ryanair.flights.services.RouteServiceImpl;
+import com.ryanair.flights.services.SchedulesServiceImpl;
 import junitparams.JUnitParamsRunner;
 import org.junit.Before;
 import org.junit.Rule;
@@ -20,20 +19,17 @@ import java.util.List;
 @RunWith(JUnitParamsRunner.class)
 public class CommonFlightSearcherServiceTest {
 
-    protected static final LocalDateTime departureDateTime = LocalDateTime.parse("2016-03-02T07:00");
-    protected static final LocalDateTime arrivalDateTime = LocalDateTime.parse("2016-03-02T22:10");
+    protected static final LocalDateTime departureDateTime = LocalDateTime.parse("2019-03-02T07:00");
+    protected static final LocalDateTime arrivalDateTime = LocalDateTime.parse("2019-03-02T22:10");
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
-    protected RouteService routeServiceMock;
+    protected RouteServiceImpl routeServiceMock;
 
     @Mock
-    protected SchedulesService schedulesServiceMock;
-
-    @Mock
-    protected RouteFinder routeFinderMok;
+    protected SchedulesServiceImpl schedulesServiceMock;
 
     @InjectMocks
     protected FlightsSearchServiceImpl searcherService;

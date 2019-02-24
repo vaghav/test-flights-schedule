@@ -1,12 +1,12 @@
+import com.ryanair.flights.downstream.dto.RouteDTO;
 import com.ryanair.flights.enums.Operator;
-import com.ryanair.flights.internal.downstream.dto.RouteDTO;
-import com.ryanair.flights.services.RouteService;
+import com.ryanair.flights.services.RouteServiceImpl;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
@@ -23,7 +23,7 @@ public class RouteServiceTest {
     private RestTemplate restTemplateMock;
 
     @InjectMocks
-    private RouteService routeService;
+    private RouteServiceImpl routeService;
 
     @Test
     public void shouldReturnRoutes() {
@@ -45,5 +45,29 @@ public class RouteServiceTest {
         //then
         Assert.assertEquals(1, flightRoutes.size());
         Assert.assertSame(secondRoute, flightRoutes.get(0));
+    }
+
+    @Test
+    public void shouldPrintAirPortCodes() {
+
+        //when
+        routeService.findRoutes("WRO", "MAD", createRoutes());
+
+        //then
+        //TODO: Assertions needs
+    }
+
+    private List<RouteDTO> createRoutes() {
+        return List.of(new RouteDTO("WRO", "GRO"),
+                new RouteDTO("WAW", "WRO"),
+                new RouteDTO("GRO", "WAW"), new RouteDTO("WRO", "BCN"),
+                new RouteDTO("BCN", "SVO"), new RouteDTO("WRO", "SVO"),
+                new RouteDTO("WAW", "SVO"), new RouteDTO("WRO", "LIS"),
+                new RouteDTO("WRO", "SVO"), new RouteDTO("SVO", "WAW"),
+                new RouteDTO("BCN", "QAT"), new RouteDTO("QAT", "FRN"),
+                new RouteDTO("FRN", "CCV"), new RouteDTO("CCV", "SSS"),
+//                new RouteDTO("WRO", "AST"), new RouteDTO("AST", "SSS"),
+//                new RouteDTO("SSS", "MAD"), new RouteDTO("SSS", "DAV"),
+                new RouteDTO("WAW", "MAD"), new RouteDTO("MAD", "BCN"));
     }
 }

@@ -1,6 +1,6 @@
 package com.ryanair.flights.internal.dto;
 
-import com.ryanair.flights.internal.downstream.dto.RouteDTO;
+import com.ryanair.flights.downstream.dto.RouteDTO;
 import lombok.Getter;
 
 @Getter
@@ -15,6 +15,7 @@ public class FlightConnectionDTO {
             throw new IllegalArgumentException("First flight arrival airport is different from second " +
                     "flight departure airport");
         }
+
         this.firstRoute = firstRoute;
         this.secondRoute = secondRoute;
     }

@@ -1,54 +1,34 @@
 package com.ryanair.flights.services;
 
-import com.ryanair.flights.dto.*;
-import com.ryanair.flights.internal.downstream.dto.RouteDTO;
-import com.ryanair.flights.internal.downstream.dto.ScheduleDTO;
-import com.ryanair.flights.internal.dto.*;
+import com.ryanair.flights.downstream.dto.RouteDTO;
+import com.ryanair.flights.dto.ItineraryDTO;
+import com.ryanair.flights.internal.dto.FlightConnectionDTO;
+import com.ryanair.flights.internal.dto.FlightInfoDTO;
 import com.ryanair.flights.util.FlightSearchServiceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.Month;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import static com.ryanair.flights.util.DateUtil.*;
-import static com.ryanair.flights.util.FlightSearchServiceUtil.*;
-import static com.ryanair.flights.util.RouteUtil.getOneStopConnections;
+import static com.ryanair.flights.util.DateUtil.checkPeriodBetweenFlights;
+import static com.ryanair.flights.util.FlightSearchServiceUtil.createItinerary;
 import static com.ryanair.flights.util.RouteUtil.isDirectRouteExists;
 import static java.util.stream.Collectors.toList;
 
 @Service
-public class FlightsSearchServiceImpl implements FlightsSearchService {
-
-    @Value("${flights.interval:2}")
-    private Integer flightsIntervalInHours;
-
-    @Value("${flights.stops.count:2}")
-    private Integer flightsStopsCount;
+public class FlightsSearchServiceImpl extends FlightService {
 
     private final RouteService routeService;
 
     private final SchedulesService schedulesService;
 
-    private final RouteFinder routeFinder;
-
     @Autowired
-    public FlightsSearchServiceImpl(RouteService routeService, SchedulesService schedulesService,
-                                    RouteFinder routeFinder) {
+    public FlightsSearchServiceImpl(RouteServiceImpl routeService, SchedulesServiceImpl schedulesService) {
         this.routeService = routeService;
         this.schedulesService = schedulesService;
-        this.routeFinder = routeFinder;
-    }
-
-    @Override
-    public List<ItineraryDTO> searchInterConnected(String departureAirport,
-                                                   String arrivalAirport,
-                                                   LocalDateTime departureTime,
-                                                   LocalDateTime arrivalTime) {
-        return searchInterConnected(departureAirport, arrivalAirport, departureTime, arrivalTime,
-                flightsIntervalInHours);
     }
 
     @Override
@@ -67,9 +47,9 @@ public class FlightsSearchServiceImpl implements FlightsSearchService {
         itineraries.addAll(getOneStopItineraries(departureAirport, arrivalAirport, departureDateTime, arrivalDateTime, routes,
                 flightsIntervalInHours));
 
+
         return itineraries;
     }
-
 
     //TODO: With N stops. Haven't yet finished
     @Override
@@ -91,25 +71,28 @@ public class FlightsSearchServiceImpl implements FlightsSearchService {
         return itineraries;
     }
 
-    private void validateFlightsTimes(LocalDateTime departureDateTime, LocalDateTime arrivalDateTime) {
-        if (departureDateTime.isAfter(arrivalDateTime)) {
-            throw new IllegalArgumentException("Invalid departure or arrival time was given");
-        }
-    }
 
     private Collection<? extends ItineraryDTO> getItinerariesByStopCount(String departureAirport,
                                                                          String arrivalAirport,
                                                                          LocalDateTime departureDateTime,
                                                                          LocalDateTime arrivalDateTime,
                                                                          List<RouteDTO> routes,
-                                                                         int flightsIntervalInHours, int stopsCount) {
+                                                                         int flightsIntervalInHours,
+                                                                         int stopsCount) {
 
-        //TODO: Filtering by stops count haven't yet implemented. RouteFinder.findRoutes() returns all existed routes.
-        // Those routes should be filtered by 'stopsCount`
-        return routeFinder.findRoutes(departureAirport, arrivalAirport, routes).stream()
+        //TODO: Filtering by stops count haven't yet implemented. RouteFinder.findRoutes() returns one of existed connections
+        // from departure to arrival airport. Those routes should be filtered by 'stopsCount`.
+        return routeService.findRoutes(departureAirport, arrivalAirport, routes)
+                .stream()
                 .map(connection -> getItinerariesByConnection(departureDateTime, arrivalDateTime, connection,
                         flightsIntervalInHours))
                 .flatMap(Collection::stream).collect(toList());
+    }
+
+    private void validateFlightsTimes(LocalDateTime departureDateTime, LocalDateTime arrivalDateTime) {
+        if (departureDateTime.isAfter(arrivalDateTime)) {
+            throw new IllegalArgumentException("Invalid departure or arrival time was given");
+        }
     }
     
     private List<ItineraryDTO> getDirectItineraries(String departureAirport,
@@ -122,51 +105,9 @@ public class FlightsSearchServiceImpl implements FlightsSearchService {
             return new ArrayList<>();
         }
 
-        return getFlightsScheduleInPeriod(departureAirport, arrivalAirport, departureDateTime, arrivalDateTime)
+        return schedulesService.getFlightsInPeriod(departureAirport, arrivalAirport, departureDateTime, arrivalDateTime)
                 .stream()
                 .map((FlightSearchServiceUtil::createItinerary)).collect(toList());
-    }
-
-
-    private List<FlightsScheduleDTO> getFlightsScheduleInPeriod(String departureAirport,
-                                                                String arrivalAirport,
-                                                                LocalDateTime departureDateTime,
-                                                                LocalDateTime arrivalDateTime) {
-
-        List<FlightsScheduleDTO> flightsSchedules = new ArrayList<>();
-
-        flightsSchedules.addAll(getFlightSchedules(departureAirport, arrivalAirport, departureDateTime.getYear(),
-                departureDateTime.getMonth()));
-
-        Month tempMonth = departureDateTime.getMonth();
-        int tempYear = departureDateTime.getYear();
-
-        while ((arrivalDateTime.getMonth() != tempMonth || arrivalDateTime.getYear() != tempYear)) {
-            tempMonth = tempMonth.plus(1);
-            if (tempMonth == Month.JANUARY) {
-                tempYear++;
-            }
-
-            flightsSchedules.addAll(getFlightSchedules(departureAirport, arrivalAirport, tempYear, tempMonth));
-        }
-
-        return flightsSchedules
-                .stream()
-                .filter(schedule -> isFlightInPeriod(departureDateTime, arrivalDateTime, schedule))
-                .collect(toList());
-    }
-
-    private List<FlightsScheduleDTO> getFlightSchedules(String departureAirport,
-                                                        String arrivalAirport,
-                                                        int year, Month month) {
-
-        Optional<ScheduleDTO> flightsSchedule = schedulesService.getFlightsSchedule(departureAirport, arrivalAirport,
-                year, month.getValue());
-
-        if (!flightsSchedule.map(ScheduleDTO::getDays).isPresent()){
-            return Collections.emptyList();
-        }
-        return convert(flightsSchedule.get(), year, departureAirport, arrivalAirport);
     }
 
     private List<ItineraryDTO> getOneStopItineraries(String departureAirport,
@@ -176,8 +117,10 @@ public class FlightsSearchServiceImpl implements FlightsSearchService {
                                                      List<RouteDTO> routes,
                                                      int flightsIntervalInHours) {
 
-        return getOneStopConnections(departureAirport, arrivalAirport, routes).stream()
-                .map(connection -> getItinerariesByConnection(departureTime, arrivalTime, connection, flightsIntervalInHours))
+        return routeService.getOneStopConnections(departureAirport, arrivalAirport, routes)
+                .stream()
+                .map(connection -> getItinerariesByConnection(departureTime, arrivalTime, connection,
+                        flightsIntervalInHours))
                 .flatMap(Collection::stream).collect(toList());
     }
 
@@ -189,10 +132,10 @@ public class FlightsSearchServiceImpl implements FlightsSearchService {
         RouteDTO firstRoute = connection.getFirstRoute();
         RouteDTO secondRoute = connection.getSecondRoute();
 
-        List<FlightsScheduleDTO> firstFlights = getFlightsScheduleInPeriod(firstRoute.getAirportFrom(),
+        List<FlightInfoDTO> firstFlights = schedulesService.getFlightsInPeriod(firstRoute.getAirportFrom(),
                 firstRoute.getAirportTo(), departureTime, arrivalTime);
 
-        List<FlightsScheduleDTO> secondFlights = getFlightsScheduleInPeriod(secondRoute.getAirportFrom(),
+        List<FlightInfoDTO> secondFlights = schedulesService.getFlightsInPeriod(secondRoute.getAirportFrom(),
                 secondRoute.getAirportTo(), departureTime, arrivalTime);
 
         return firstFlights
@@ -202,8 +145,8 @@ public class FlightsSearchServiceImpl implements FlightsSearchService {
                 .collect(toList());
     }
 
-    private List<ItineraryDTO> getValidItineraries(FlightsScheduleDTO firstFlight,
-                                                   List<FlightsScheduleDTO> secondFlights,
+    private List<ItineraryDTO> getValidItineraries(FlightInfoDTO firstFlight,
+                                                   List<FlightInfoDTO> secondFlights,
                                                    int flightsIntervalInHours) {
         return secondFlights
                 .stream()

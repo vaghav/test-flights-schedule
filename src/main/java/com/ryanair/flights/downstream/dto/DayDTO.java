@@ -1,4 +1,4 @@
-package com.ryanair.flights.internal.downstream.dto;
+package com.ryanair.flights.downstream.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,9 +9,9 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScheduleDTO {
+public class DayDTO {
 
-    private int month;
+    private int day;
 
-    private List<DailyFlightsScheduleDTO> days;
+    private List<FlightDTO> flights;
 }
